@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ListingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum FuelType {
+  DIESEL
+  PETROL
+  HYBRID
+  ELECTRIC
+  LPG
+}
+
+enum Transmission {
+  MANUAL
+  AUTOMATIC
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  email        String      @unique
+  passwordHash String
+  phone        String?
+  city         String?
+  role         Role        @default(USER)
+  listings     Listing[]
+  favorites    Favorite[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Listing {
+  id              Int            @id @default(autoincrement())
+  title           String
+  description     String
+  brand           String
+  model           String
+  year            Int
+  price           Int
+  mileage         Int
+  fuelType        FuelType
+  transmission    Transmission
+  color           String
+  engine          String
+  horsepower      Int
+  locationCity    String
+  featuredImage   String
+  gallery         String
+
+  contactName     String?
+  contactEmail    String?
+  contactPhone    String?
+
+  isSold          Boolean        @default(false)
+  soldAt          DateTime?
+
+  rejectionReason String?
+
+  status          ListingStatus  @default(PENDING)
+  isPublished     Boolean        @default(false)
+  ownerId         Int
+  owner           User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  favorites       Favorite[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  listingId Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
+}
